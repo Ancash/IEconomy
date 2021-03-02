@@ -130,7 +130,7 @@ public class EcoCommand implements CommandExecutor{
 					p.sendMessage("§cYou don't have permissions to do that!");
 					return true;
 				}
-				p.sendMessage("" + target.getName() + "'s balance: " + IEconomy.getInstance().getBalance(target));
+				p.sendMessage("" + target.getName() + "'s balance: " + IEconomy.getInstance().format(IEconomy.getInstance().getBalance(target)));
 				return true;
 			}
 			return false;

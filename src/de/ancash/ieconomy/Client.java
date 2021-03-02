@@ -1,11 +1,9 @@
 package de.ancash.ieconomy;
 
-import de.ancash.ilibrary.sockets.Answer;
-import de.ancash.ilibrary.sockets.ChatClient;
-import de.ancash.ilibrary.sockets.InfoPacket;
-import de.ancash.ilibrary.sockets.Request;
+import de.ancash.ilibrary.sockets.NIOClient;
+import de.ancash.ilibrary.sockets.Packet;
 
-class Client extends ChatClient{
+class Client extends NIOClient{
 
 	boolean wait = true;
 	
@@ -14,30 +12,23 @@ class Client extends ChatClient{
 	}
 
 	@Override
-	public void onAnswer(Answer arg0) {
-		
-	}
-
-	@Override
-	public void onRequest(Request req) {
-		if(req.getRequest().equals("economy pullall")) {
+	public void onPacket(Packet packet) {
+		if(!(packet.getObject() instanceof String)) {
+			System.out.println("Unknown Packet: " + packet.getObject());
+			return;
+		}
+		String msg = (String) packet.getObject();
+		if(msg.equals("economy pullall")) {
 			if(wait) return;
 			IEconomy.getInstance().debug("Pushing all Balances!");
 			IEconomy.getInstance().pushAll();
-		}
-	}
-
-	@Override
-	public void onInfo(InfoPacket packet) {
-		if(packet.getMsg().split(" ")[0].equals("updatebalance")) {
-			IEconomy.getInstance().update(packet.getMsg().split(" ")[1], Double.valueOf(packet.getMsg().split(" ")[2]), Long.valueOf(packet.getMsg().split(" ")[3]));
 			return;
 		}
-		System.out.println("Unknown Packet: " + packet.getMsg());
-		/*if(packet.getMsg().split(" ")[0].equals("pushall")) {
-			IEconomy.getInstance().debug("Received Pull!");
-			IEconomy.getInstance().update(packet.getMsg().split(" ")[1], Double.valueOf(packet.getMsg().split(" ")[2]), Long.valueOf(packet.getMsg().split(" ")[3]));
-		}*/
+		if(msg.split(" ").length == 4 && msg.split(" ")[0].equals("updatebalance")) {
+			IEconomy.getInstance().update(msg.split(" ")[1], Double.valueOf(msg.split(" ")[2]), Long.valueOf(msg.split(" ")[3]));
+			return;
+		}
+		System.out.println("Unknown Packet: " + packet.getObject());
 	}
 
 }

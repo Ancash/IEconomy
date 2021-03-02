@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import de.ancash.ilibrary.datastructures.sets.CompactSet;
 import de.ancash.ilibrary.datastructures.tuples.Duplet;
@@ -83,10 +84,12 @@ class MyEconomy extends JavaPlugin{
 	
 	public void update(String path, double value, long timestamp) {
 		if(!check(path, timestamp)) {
-			debug("Received out dated data!");
+			if(timestamp != 0) {
+				debug("Received out dated data!");
+			}
 			return;
 		}
-		setDouble(path, value);
+		setDouble(path, value, false);
 	}
 	
 	//bank stuff
@@ -132,11 +135,11 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void setBalance(UUID player, double amount) {
-		setDouble(player + ".balance", amount);
+		setDouble(player + ".balance", amount, false);
 	}
 	
 	public void setBalance(OfflinePlayer p, double amount) {
-		setDouble(p.getUniqueId().toString() + ".balance", amount);
+		setDouble(p.getUniqueId().toString() + ".balance", amount, true);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -145,11 +148,11 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void setBank(UUID p, double amount) {
-		setDouble(p + ".bank", amount);
+		setDouble(p + ".bank", amount, true);
 	}
 	
 	public void setBank(OfflinePlayer p, double amount) {
-		setDouble(p.getUniqueId().toString() + ".bank", amount);
+		setDouble(p.getUniqueId().toString() + ".bank", amount, true);
 	}
 	
 	//withdraw
@@ -159,11 +162,11 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void withdrawPlayer(UUID off, double amount) {
-		setDouble(off + ".balance", playerData.getDouble(off + ".balance") - amount);
+		setDouble(off + ".balance", playerData.getDouble(off + ".balance") - amount, true);
 	}
 	
 	public void withdrawPlayer(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") - amount);
+		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") - amount, true);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -172,11 +175,11 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void withdrawBank(UUID off, double amount) {
-		setDouble(off + ".bank", playerData.getDouble(off + ".bank") - amount);
+		setDouble(off + ".bank", playerData.getDouble(off + ".bank") - amount, true);
 	}
 	
 	public void withdrawBank(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") - amount);
+		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") - amount, true);
 	}
 	
 	
@@ -187,11 +190,11 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void depositPlayer(UUID off, double amount) {
-		setDouble(off + ".balance", playerData.getDouble(off + ".balance") + amount);
+		setDouble(off + ".balance", playerData.getDouble(off + ".balance") + amount, true);
 	}
 	
 	public void depositPlayer(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") + amount);
+		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") + amount, true);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -200,15 +203,15 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void depositBank(UUID off, double amount) {
-		setDouble(off + ".bank", playerData.getDouble(off.toString() + ".bank") + amount);
+		setDouble(off + ".bank", playerData.getDouble(off.toString() + ".bank") + amount, true);
 	}
 	
 	public void depositBank(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") + amount);
+		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") + amount, true);
 	}
 	
 	//misc
-	private void setDouble(String path, double value) {
+	private void setDouble(String path, double value, boolean b) {
 		long now = System.currentTimeMillis();
 		if(!check(path, now)) return;
 		if(path.contains("balance")) {
@@ -217,6 +220,16 @@ class MyEconomy extends JavaPlugin{
 		} else if(path.contains("bank")) {
 			balances.get(path.split("\\.")[0]).getSecond().setFirst(NumberConversions.round(value, 2));
 			balances.get(path.split("\\.")[0]).getSecond().setSecond(now);
+		}
+		if(b) {
+			new BukkitRunnable() {
+				
+				@Override
+				public void run() {
+					OfflinePlayer off = Bukkit.getOfflinePlayer(UUID.fromString(path.split("\\.")[0]));
+					if(!off.isOnline()) IEconomy.getInstance().pushAll(off);
+				}
+			}.runTaskAsynchronously(IEconomy.getInstance());
 		}
 	}
 	

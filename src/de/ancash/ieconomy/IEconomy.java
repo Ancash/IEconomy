@@ -13,9 +13,7 @@ import de.ancash.ieconomy.listeners.JoinQuitListener;
 import de.ancash.ilibrary.ILibrary;
 import de.ancash.ilibrary.misc.FileUtils;
 import de.ancash.ilibrary.sockets.ChatClient;
-import de.ancash.ilibrary.sockets.InfoPacket;
-import de.ancash.ilibrary.sockets.Request;
-import de.ancash.ilibrary.sockets.TargetType;
+import de.ancash.ilibrary.sockets.Packet;
 import de.ancash.ilibrary.yaml.configuration.file.YamlFile;
 import de.ancash.ilibrary.yaml.exceptions.InvalidConfigurationException;
 
@@ -86,7 +84,7 @@ public class IEconomy extends MyEconomy{
 			public void run() {
 				if(chatClient != null && chatClient.isActive()) {
 					debug("Fetching all balances!");
-					chatClient.send(new Request("Economy", "economy pullall", TargetType.CLIENT));
+					chatClient.send(new Packet("Economy", "economy pullall"));
 					Bukkit.getScheduler().runTaskLater(getInstance(), new Runnable() {
 						
 						@Override
@@ -142,8 +140,12 @@ public class IEconomy extends MyEconomy{
 	}
 	
 	private void push(String path, double value, long timeStamp, ChatClient chatClient) {
-		if(chatClient.isActive()) chatClient.send(new InfoPacket("Economy", "updatebalance " + path + " " + value + " " + timeStamp, TargetType.CLIENT));
+		if(chatClient.isActive()) chatClient.send(new Packet("Economy", "updatebalance " + path + " " + value + " " + timeStamp));
 	}	
+	
+	ChatClient getChatClient() {
+		return chatClient;
+	}
 	
 	public static IEconomy getInstance() {
 		return instance;
