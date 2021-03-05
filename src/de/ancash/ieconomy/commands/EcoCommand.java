@@ -27,7 +27,7 @@ public class EcoCommand implements CommandExecutor{
 			@Override
 			public void run() {
 				if(!handle(p == null ? sender : p, args, p != null)) {
-					sender.sendMessage("§7/eco §fCheck yourr balance.");
+					sender.sendMessage("§7/eco §fCheck your balance.");
 					sender.sendMessage("§7/eco check [player] §fCheck player balance.");
 					sender.sendMessage("§7/eco pay [player] [amount] §fPay your money to other player.");
 					sender.sendMessage("§7/eco give [player] [amount] §fGive money to player.");
@@ -43,8 +43,8 @@ public class EcoCommand implements CommandExecutor{
 	@SuppressWarnings("deprecation")
 	private boolean handle(CommandSender p, String[] args, boolean isPlayer) {
 		if(!isPlayer && args[0].toLowerCase().equals("pay")) return true;
-		OfflinePlayer target = null;
-		if(args.length == 2 || args.length == 3) target = Bukkit.getOfflinePlayer(args[1]);
+		if(args.length == 1) return false;
+		final OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 		
 		if(args.length == 3) {
 			
@@ -108,6 +108,7 @@ public class EcoCommand implements CommandExecutor{
 				
 				
 				p.sendMessage("§aTook §6" + toPay + " §afrom " + target.getName() + "! New Balance: §6" + IEconomy.getInstance().getBalance(target));
+				IEconomy.getInstance().pushAll(target.getUniqueId());
 				return true;
 			case "give":					
 				if(!IEconomy.getInstance().exists(target)) {
@@ -117,7 +118,7 @@ public class EcoCommand implements CommandExecutor{
 				
 				IEconomy.getInstance().depositPlayer(target, toPay);
 				
-				p.sendMessage("§aTook §6" + toPay + " §afrom " + target.getName() + "! New Balance: §6" + IEconomy.getInstance().getBalance(target));
+				p.sendMessage("§aGave §a" + target.getName() + "§6" + toPay + "§6! New Balance: §6" + IEconomy.getInstance().getBalance(target));
 				return true;
 			default:
 				break;

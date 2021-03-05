@@ -13,10 +13,8 @@ class Client extends NIOClient{
 
 	@Override
 	public void onPacket(Packet packet) {
-		if(!(packet.getObject() instanceof String)) {
-			System.out.println("Unknown Packet: " + packet.getObject());
-			return;
-		}
+		if(!packet.getOwner().equals("IEconomy") || !(packet.getObject() instanceof String)) return;
+		
 		String msg = (String) packet.getObject();
 		if(msg.equals("economy pullall")) {
 			if(wait) return;

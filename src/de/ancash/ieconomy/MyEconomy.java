@@ -84,9 +84,9 @@ class MyEconomy extends JavaPlugin{
 	
 	public void update(String path, double value, long timestamp) {
 		if(!check(path, timestamp)) {
-			if(timestamp != 0) {
+			/*if(timestamp != 0) {
 				debug("Received out dated data!");
-			}
+			}*/
 			return;
 		}
 		setDouble(path, value, false);
@@ -99,7 +99,7 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public boolean exists(OfflinePlayer p) {
-		return balances.containsKey(p.getUniqueId() + "");
+		return p != null && balances.containsKey(p.getUniqueId() + "");
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -136,10 +136,12 @@ class MyEconomy extends JavaPlugin{
 	
 	public void setBalance(UUID player, double amount) {
 		setDouble(player + ".balance", amount, false);
+		IEconomy.getInstance().pushAll(player);
 	}
 	
 	public void setBalance(OfflinePlayer p, double amount) {
-		setDouble(p.getUniqueId().toString() + ".balance", amount, true);
+		setDouble(p.getUniqueId().toString() + ".balance", amount, false);
+		IEconomy.getInstance().pushAll(p);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -148,11 +150,13 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void setBank(UUID p, double amount) {
-		setDouble(p + ".bank", amount, true);
+		setDouble(p + ".bank", amount, false);
+		IEconomy.getInstance().pushAll(p);
 	}
 	
 	public void setBank(OfflinePlayer p, double amount) {
-		setDouble(p.getUniqueId().toString() + ".bank", amount, true);
+		setDouble(p.getUniqueId().toString() + ".bank", amount, false);
+		IEconomy.getInstance().pushAll(p);
 	}
 	
 	//withdraw
@@ -162,11 +166,13 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void withdrawPlayer(UUID off, double amount) {
-		setDouble(off + ".balance", playerData.getDouble(off + ".balance") - amount, true);
+		setDouble(off + ".balance", getBalance(off) - amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	public void withdrawPlayer(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") - amount, true);
+		setDouble(off.getUniqueId().toString() + ".balance", getBalance(off) - amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -175,11 +181,13 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void withdrawBank(UUID off, double amount) {
-		setDouble(off + ".bank", playerData.getDouble(off + ".bank") - amount, true);
+		setDouble(off + ".bank", getBank(off) - amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	public void withdrawBank(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") - amount, true);
+		setDouble(off.getUniqueId().toString() + ".bank", getBank(off) - amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	
@@ -190,11 +198,13 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void depositPlayer(UUID off, double amount) {
-		setDouble(off + ".balance", playerData.getDouble(off + ".balance") + amount, true);
+		setDouble(off + ".balance", getBalance(off) + amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	public void depositPlayer(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".balance", playerData.getDouble(off.getUniqueId().toString() + ".balance") + amount, true);
+		setDouble(off.getUniqueId().toString() + ".balance", getBalance(off) + amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -203,11 +213,13 @@ class MyEconomy extends JavaPlugin{
 	}
 	
 	public void depositBank(UUID off, double amount) {
-		setDouble(off + ".bank", playerData.getDouble(off.toString() + ".bank") + amount, true);
+		setDouble(off + ".bank", getBank(off) + amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	public void depositBank(OfflinePlayer off, double amount) {
-		setDouble(off.getUniqueId().toString() + ".bank", playerData.getDouble(off.getUniqueId().toString() + ".bank") + amount, true);
+		setDouble(off.getUniqueId().toString() + ".bank", getBank(off) + amount, false);
+		IEconomy.getInstance().pushAll(off);
 	}
 	
 	//misc

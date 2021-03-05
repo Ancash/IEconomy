@@ -84,7 +84,7 @@ public class IEconomy extends MyEconomy{
 			public void run() {
 				if(chatClient != null && chatClient.isActive()) {
 					debug("Fetching all balances!");
-					chatClient.send(new Packet("Economy", "economy pullall"));
+					chatClient.send(new Packet("IEconomy", "economy pullall"));
 					Bukkit.getScheduler().runTaskLater(getInstance(), new Runnable() {
 						
 						@Override
@@ -134,13 +134,13 @@ public class IEconomy extends MyEconomy{
 	}
 	
 	public void pushAll(OfflinePlayer p) {
-		debug("Pushed " + p.getName() + "'s Balances!");
+		//debug("Pushed " + p.getName() + "'s Balances!");
 		push(p.getUniqueId() + ".balance", getBalance(p), getComment(p.getUniqueId() + ".balance"), chatClient);
 		push(p.getUniqueId() + ".bank", getBank(p), getComment(p.getUniqueId() + ".bank"), chatClient);
 	}
 	
 	private void push(String path, double value, long timeStamp, ChatClient chatClient) {
-		if(chatClient.isActive()) chatClient.send(new Packet("Economy", "updatebalance " + path + " " + value + " " + timeStamp));
+		if(chatClient.isActive()) chatClient.send(new Packet("IEconomy", "updatebalance " + path + " " + value + " " + timeStamp));
 	}	
 	
 	ChatClient getChatClient() {
