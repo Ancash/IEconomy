@@ -1,4 +1,0 @@
-enableSockets: false
-port: 25600
-address: "localhost"
-alwaysUpdate: true #update after balance change or not (send update to other server)
