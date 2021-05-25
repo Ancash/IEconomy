@@ -1,0 +1,11 @@
+name: IEconomy
+version: 1.0
+main: de.ancash.ieconomy.IEconomy
+author: Ancash
+depend: [ILibrary]
+softdepend: [Vault]
+
+commands:
+   eco:
+      aliases: [economy, money, balance, bal]
+      
