@@ -8,181 +8,168 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import de.ancash.ILibrary;
-import de.ancash.datastructures.maps.CompactMap;
-import de.ancash.misc.MathsUtils;
-import de.ancash.sockets.storage.StorageAction;
-import de.ancash.sockets.storage.StorageCallback;
-import de.ancash.sockets.storage.StoragePacket;
-import de.ancash.sockets.storage.StorageResult;
+import de.ancash.ieconomy.sockets.packet.IEconomyHeader;
+import de.ancash.ieconomy.sockets.packet.IEconomyPacket;
+import de.ancash.sockets.packet.Packet;
 
 class MyEconomy extends JavaPlugin{
-
-	private static final String PATH = "IEconomy/player";
 	
-	CompactMap<UUID, Double> balance = new CompactMap<>();
-	CompactMap<UUID, Double> bank = new CompactMap<>();
-	
-	public final void update(UUID uuid) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.GET_DOUBLE, PATH + "/" + uuid, getBalancePath(), null, new StorageCallback() {
-			
-			@Override
-			public void call(StorageResult arg0) {
-				updateBalance(uuid, (double) arg0.getValue());
-			}
-		});
-		ILibrary.getInstance().send(sp.getPacket());
-		sp = new StoragePacket(StorageAction.GET_DOUBLE, PATH + "/" + uuid, getBankPath(), null, new StorageCallback() {
-			
-			@Override
-			public void call(StorageResult arg0) {
-				updateBank(uuid, (double) arg0.getValue());
-			}
-		});
-		ILibrary.getInstance().send(sp.getPacket());
-	}
-	
-	public String getBankPath() {
-		return "bank";
-	}
-
-	public String getBalancePath() {
-		return "balance";
-	}
-	
-	private synchronized void updateBalance(UUID uuid, double val) {
-		balance.put(uuid, val);
-	}
-	
-	private synchronized void updateBank(UUID uuid, double val) {
-		bank.put(uuid, val);
-	}
-	
-	public boolean isCached(UUID id) throws IOException {
-		if(!balance.containsKey(id)) {
-			update(id);
-			return false;
-		} else {
-			return true;
-		}
-	}
+	private static final int TIME_OUT_MS = 2000;
 	
 	@SuppressWarnings("deprecation")
-	public double getBalance(String player) throws IOException {
+	public double getBalance(String player) throws IOException, InterruptedException {
 		return getBalance(Bukkit.getOfflinePlayer(player));
 	}
 	
-	public double getBalance(OfflinePlayer off) throws IOException {
+	public double getBalance(OfflinePlayer off) throws IOException, InterruptedException {
 		return getBalance(off.getUniqueId());
 	}
 	
-	public double getBalance(UUID player) throws IOException {
-		if(!balance.containsKey(player)) {
-			update(player);
+	public double getBalance(UUID player) throws IOException, InterruptedException {
+		synchronized (player) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.GET_BALANCE, player, 0);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
 		}
-		while(!balance.containsKey(player)) 
-			Thread.yield();
-		
-		return balance.get(player);
 	}
 	
 	@SuppressWarnings("deprecation")
-	public double getBank(String player) throws IOException {
+	public double getBank(String player) throws IOException, InterruptedException {
 		return getBank(Bukkit.getOfflinePlayer(player));
 	}
 	
-	public double getBank(OfflinePlayer off) throws IOException {
+	public double getBank(OfflinePlayer off) throws IOException, InterruptedException {
 		return getBank(off.getUniqueId());
 	}
 	
-	public double getBank(UUID id) throws IOException {
-		if(!bank.containsKey(id)) update(id);
-		while(!bank.containsKey(id)) 
-			Thread.yield();
-		return bank.get(id);
-	}
-	
-	public void setBalance(OfflinePlayer p, double amount) throws IOException {
-		setBalance(p.getUniqueId(), amount);
+	public Double getBank(UUID player) throws IOException, InterruptedException {
+		synchronized (player) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.GET_BANK, player, 0);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
 	@SuppressWarnings("deprecation")
-	public void setBalance(String player, double amount) throws IOException {
-		setBalance(Bukkit.getOfflinePlayer(player), amount);
+	public double setBalance(String player, double amount, boolean awaitResponse) throws IOException, InterruptedException {
+		return setBalance(Bukkit.getOfflinePlayer(player), amount, awaitResponse);
+	}
+	
+	public double setBalance(OfflinePlayer p, double amount, boolean awaitResponse) throws IOException, InterruptedException {
+		return setBalance(p.getUniqueId(), amount, awaitResponse);
+	}
+	
+	public double setBalance(UUID uuid, double value, boolean awaitResponse) throws IOException, InterruptedException {
+		synchronized (uuid) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.SET_BALANCE, uuid, value);
+			packet.setAwaitResponse(awaitResponse);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			if(!awaitResponse) return value;
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
 	//withdraw
 	@SuppressWarnings("deprecation")
-	public void withdrawPlayer(String player, double amount) throws IOException {
-		withdrawPlayer(Bukkit.getOfflinePlayer(player), amount);
+	public double withdrawPlayer(String player, double amount) throws IOException, InterruptedException {
+		return withdrawPlayer(Bukkit.getOfflinePlayer(player), amount);
 	}
 	
-	public void withdrawPlayer(OfflinePlayer off, double amount) throws IOException {
-		withdrawPlayer(off.getUniqueId(), amount);
+	public double withdrawPlayer(OfflinePlayer off, double amount) throws IOException, InterruptedException {
+		return withdrawPlayer(off.getUniqueId(), amount);
+	}
+	
+	public double withdrawPlayer(UUID off, double amount) throws IOException, InterruptedException {
+		synchronized (off) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.REMOVE_FROM_BALANCE, off, amount);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
 	@SuppressWarnings("deprecation")
-	public void withdrawBank(String player, double amount) throws IOException {
-		withdrawBank(Bukkit.getOfflinePlayer(player), amount);
+	public double withdrawBank(String player, double amount) throws IOException, InterruptedException {
+		return withdrawBank(Bukkit.getOfflinePlayer(player), amount);
 	}
 	
-	public void withdrawBank(OfflinePlayer off, double amount) throws IOException {
-		withdrawBank(off.getUniqueId(), amount);
+	public double withdrawBank(OfflinePlayer off, double amount) throws IOException, InterruptedException {
+		return withdrawBank(off.getUniqueId(), amount);
 	}
 	
+	public double withdrawBank(UUID off, double amount) throws IOException, InterruptedException {
+		synchronized (off) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.REMOVE_FROM_BANK, off, amount);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
+	}
 	
 	//deposit
 	@SuppressWarnings("deprecation")
-	public void depositPlayer(String player, double amount) throws IOException {
-		depositPlayer(Bukkit.getOfflinePlayer(player), amount);
+	public double depositPlayer(String player, double amount) throws IOException, InterruptedException {
+		return depositPlayer(Bukkit.getOfflinePlayer(player), amount);
 	}
 	
-	public void depositPlayer(OfflinePlayer off, double amount) throws IOException {
-		depositPlayer(off.getUniqueId(), amount);
+	public double depositPlayer(OfflinePlayer off, double amount) throws IOException, InterruptedException {
+		return depositPlayer(off.getUniqueId(), amount);
+	}
+	
+	public double depositPlayer(UUID off, double amount) throws IOException, InterruptedException {
+		synchronized (off) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.ADD_TO_BALANCE, off, amount);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
 	@SuppressWarnings("deprecation")
-	public void depositBank(String player, double amount) throws IOException {
-		depositBank(Bukkit.getOfflinePlayer(player), amount);
+	public double depositBank(String player, double amount) throws IOException, InterruptedException {
+		return depositBank(Bukkit.getOfflinePlayer(player), amount);
 	}
 	
-	public void depositBank(OfflinePlayer off, double amount) throws IOException {
-		depositBank(off.getUniqueId(), amount);
+	public double depositBank(OfflinePlayer off, double amount) throws IOException, InterruptedException {
+		return depositBank(off.getUniqueId(), amount);
 	}
 	
-	public void withdrawBank(UUID off, double amount) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.ADD_TO_DOUBLE, PATH + "/" + off, getBankPath(), -amount);
-		ILibrary.getInstance().send(sp.getPacket());
-		update(off);
+	public double depositBank(UUID off, double amount) throws IOException, InterruptedException {
+		synchronized (off) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.ADD_TO_BANK, off, amount);
+			packet.setAwaitResponse(true);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
-	public void withdrawPlayer(UUID off, double amount) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.ADD_TO_DOUBLE, PATH + "/" + off, getBalancePath(), -amount);
-		ILibrary.getInstance().send(sp.getPacket());
-		update(off);
+	@SuppressWarnings("deprecation")
+	public double setBank(String player, double amount, boolean awaitResponse) throws IOException, InterruptedException {
+		return setBank(Bukkit.getOfflinePlayer(player), amount, awaitResponse);
 	}
 	
-	public void depositPlayer(UUID off, double amount) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.ADD_TO_DOUBLE, PATH + "/" + off, getBalancePath(), MathsUtils.round(amount, 2));
-		ILibrary.getInstance().send(sp.getPacket());
-		update(off);
+	public double setBank(OfflinePlayer p, double amount, boolean awaitResponse) throws IOException, InterruptedException {
+		return setBank(p.getUniqueId(), amount, awaitResponse);
 	}
 	
-	public void depositBank(UUID off, double amount) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.ADD_TO_DOUBLE, PATH + "/" + off, getBankPath(), MathsUtils.round(amount, 2));
-		ILibrary.getInstance().send(sp.getPacket());
-		update(off);
-	}
-	
-	public void setBalance(UUID uuid, double value) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.SET_DOUBLE, PATH + "/" + uuid, getBalancePath(), MathsUtils.round(value, 2));
-		ILibrary.getInstance().send(sp.getPacket());
-		update(uuid);
-	}
-	
-	public void setBank(UUID uuid, double value) throws IOException {
-		StoragePacket sp = new StoragePacket(StorageAction.SET_DOUBLE, PATH + "/" + uuid, getBankPath(), MathsUtils.round(value, 2));
-		ILibrary.getInstance().send(sp.getPacket());
-		update(uuid);
+	public double setBank(UUID uuid, double value, boolean awaitResponse) throws IOException, InterruptedException {
+		synchronized (uuid) {
+			Packet packet = IEconomyPacket.asPacket(IEconomyHeader.SET_BANK, uuid, value);
+			packet.setAwaitResponse(awaitResponse);
+			packet.isClientTarget(false);
+			ILibrary.getInstance().send(packet);
+			if(!awaitResponse) return value;
+			return ((IEconomyPacket) packet.awaitResponse(TIME_OUT_MS).get().getSerializable()).getValue();
+		}
 	}
 	
 	public String format(double d) {

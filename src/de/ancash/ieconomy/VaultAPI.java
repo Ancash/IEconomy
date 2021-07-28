@@ -17,8 +17,7 @@ public class VaultAPI extends AbstractEconomy{
 	public EconomyResponse bankDeposit(String arg0, double arg1) {//
 		try {
 			IEconomy.getInstance().depositBank(arg0, arg1);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -33,7 +32,7 @@ public class VaultAPI extends AbstractEconomy{
 	public EconomyResponse bankWithdraw(String arg0, double arg1) {//
 		try {
 			IEconomy.getInstance().withdrawBank(arg0, arg1);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -74,7 +73,7 @@ public class VaultAPI extends AbstractEconomy{
 	public EconomyResponse depositPlayer(String arg0, double arg1) {//
 		try {
 			IEconomy.getInstance().depositPlayer(arg0, arg1);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -100,7 +99,7 @@ public class VaultAPI extends AbstractEconomy{
 	public double getBalance(String arg0) {//
 		try {
 			return IEconomy.getInstance().getBalance(arg0);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -126,7 +125,7 @@ public class VaultAPI extends AbstractEconomy{
 	public boolean has(String arg0, double arg1) {
 		try {
 			return IEconomy.getInstance().getBalance(arg0)  > arg1;
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -172,7 +171,7 @@ public class VaultAPI extends AbstractEconomy{
 	public EconomyResponse withdrawPlayer(String arg0, double arg1) {
 		try {
 			IEconomy.getInstance().withdrawPlayer(arg0, arg1);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
