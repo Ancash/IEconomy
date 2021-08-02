@@ -1,0 +1,3 @@
+name: IEconomySocketsAddon
+main: de.ancash.ieconomy.sockets.IEconomySockets
+version: 1.0.0
