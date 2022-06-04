@@ -1,0 +1,3 @@
+socket:
+   name: MMORPG-Server-01
+   timeout: 1000
