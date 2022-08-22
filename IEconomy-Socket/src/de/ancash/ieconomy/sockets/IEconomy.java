@@ -7,15 +7,14 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.bukkit.plugin.java.JavaPlugin;
-
 import de.ancash.ieconomy.sockets.cache.IECache;
 import de.ancash.ieconomy.sockets.listeners.MMORPGPacketListener;
 import de.ancash.libs.org.bukkit.event.EventManager;
+import de.ancash.loki.impl.SimpleLokiPluginImpl;
 import de.ancash.misc.IFileLogger;
 import de.ancash.misc.IPrintStream.ConsoleColor;
 
-public class IEconomy extends JavaPlugin{
+public class IEconomy extends SimpleLokiPluginImpl{
 
 	public final String PREFIX = "IEconomy - ";
 	
